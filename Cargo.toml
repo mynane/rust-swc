@@ -1,0 +1,31 @@
+[package]
+name = "rust-swc"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand = "0.8.5"
+clap = { version = "3.1.5", features = ["derive"] }
+clap-verbosity-flag = "1.0.0"
+v8 = "0.40.2"
+tokio = { version = "1", features = ["full"] }
+mini-redis = "0.4"
+anyhow = "1.0.55"
+indicatif = "0.16.2"
+log = "0.4.14"
+env_logger = "0.9.0"
+assert_cmd = "2.0.4"
+assert_fs = "1.0.7"
+atty = "0.2.14"
+confy = "0.4.0"
+crossbeam-channel = "0.5.2"
+ctrlc = "3.2.1"
+exitcode = "1.1.2"
+human-panic = "1.0.3"
+predicates = "2.1.1"
+proptest = "1.0.0"
+serde_json = "1.0.79"
+signal-hook = "0.3.13"
+wasm-pack = "0.10.2"
