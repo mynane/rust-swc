@@ -1,5 +1,8 @@
-on: [push, pull_request]
 name: release
+on:
+  push:
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -10,11 +13,11 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             artifact_name: rust-swc
-            asset_name: rust-swc-x86_64-unknown-linux-gnu
+            asset_name: rust-swc-x86_64-unknown-linux-gnu.tar.gz
           - os: ubuntu-latest
             target: x86_64-unknown-linux-musl
             artifact_name: rust-swc
-            asset_name: rust-swc-x86_64-unknown-linux-musl
+            asset_name: rust-swc-x86_64-unknown-linux-musl.tar.gz
           - os: ubuntu-latest
             target: x86_64-pc-windows-gnu
             artifact_name: rust-swc.exe
@@ -22,7 +25,7 @@ jobs:
           - os: macos-latest
             target: x86_64-apple-darwin
             artifact_name: rust-swc
-            asset_name: rust-swc-x86_64-apple-darwin
+            asset_name: rust-swc-x86_64-apple-darwin.tar.gz
 
     runs-on: ${{ matrix.os }}
 
@@ -51,3 +54,4 @@ jobs:
           asset_name: ${{ matrix.asset_name }}
           tag: ${{ github.ref }}
           overwrite: true
+          body: 'create'
