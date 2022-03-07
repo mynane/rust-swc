@@ -25,7 +25,6 @@ else
 	deno_uri="https://github.com/mynane/rust-swc/releases/download/${1}/rust-swc-${target}.tar.gz"
 fi
 
-echo $deno_uri
 
 deno_install="${DENO_INSTALL:-$HOME/.rust-swc}"
 
