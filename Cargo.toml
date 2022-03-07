@@ -9,9 +9,7 @@ edition = "2021"
 rand = "0.8.5"
 clap = { version = "3.1.5", features = ["derive"] }
 clap-verbosity-flag = "1.0.0"
-v8 = "0.40.2"
 tokio = { version = "1", features = ["full"] }
-mini-redis = "0.4"
 anyhow = "1.0.55"
 indicatif = "0.16.2"
 log = "0.4.14"
