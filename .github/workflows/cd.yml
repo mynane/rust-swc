@@ -69,6 +69,7 @@ jobs:
           files: |
             target/${{ matrix.target }}/release/rust-swc-${{ matrix.artifact_prefix }}.tar.gz
             target/${{ matrix.target }}/release/rust-swc-${{ matrix.artifact_prefix }}.sha256
+            install.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
