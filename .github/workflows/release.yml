@@ -1,57 +1,115 @@
-name: release
+name: Release
 on:
   push:
     tags:
-      - '*'
+      - 'v*.*.*'
+  workflow_dispatch:
 
 jobs:
-  build:
-    name: Release binary
+  build-release:
+    needs: create-release
+    name: build-release
+    runs-on: ${{ matrix.os }}
+    env:
+      RUST_BACKTRACE: 1
     strategy:
       matrix:
+        build:
+          - linux musl x64
+          - linux musl aarch64
+          - macos x64
+          - macos aarch64
         include:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            artifact_name: rust-swc
-            asset_name: rust-swc-x86_64-unknown-linux-gnu
-          - os: ubuntu-latest
+          - build: linux musl x64
+            os: ubuntu-latest
+            rust: stable
             target: x86_64-unknown-linux-musl
-            artifact_name: rust-swc
-            asset_name: rust-swc-x86_64-unknown-linux-musl
-          - os: ubuntu-latest
-            target: x86_64-pc-windows-gnu
-            artifact_name: rust-swc.exe
-            asset_name: rust-swc-x86_64-pc-windows-gnu.exe
-          - os: macos-latest
+          - build: linux musl aarch64
+            os: ubuntu-latest
+            rust: stable
+            target: aarch64-unknown-linux-musl
+          - build: macos x64
+            os: macos-latest
+            rust: stable
             target: x86_64-apple-darwin
-            artifact_name: rust-swc
-            asset_name: rust-swc-x86_64-apple-darwin
-
-    runs-on: ${{ matrix.os }}
-
+          - build: macos aarch64
+            os: macos-latest
+            rust: stable
+            target: aarch64-apple-darwin
     steps:
+      - name: Set release tag
+        run: |
+          if [ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' ]; then
+            echo "RELEASE_TAG=main" >> $GITHUB_ENV
+          else
+            echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}"  >> $GITHUB_ENV
+          fi
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Install stable toolchain
+      - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: ${{ matrix.rust }}
+          profile: minimal
           override: true
+          target: ${{ matrix.target }}
 
-      - name: Cross build with all features
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: true
-          command: build
-          args: --release --target ${{ matrix.target }} --all-features --verbose
+      - name: Add WASM target
+        run: rustup target add wasm32-wasi
 
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@2.1.1
+      - name: Install cargo-make
+        run: cargo install --debug cargo-make
+
+      - name: Install musl-tools
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install -y --no-install-recommends musl-tools
+
+      - name: Install wasm-opt
+        run: brew install binaryen
+
+      # Workaround for <https://github.com/actions/virtual-environments/issues/2557>
+      - name: Switch Xcode SDK
+        if: runner.os == 'macos'
+        run: |
+          cat <<EOF >> "$GITHUB_ENV"
+          SDKROOT=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+          EOF
+      - name: Build release binary
+        run: cargo make ci-build-release ${{ matrix.target }}
+
+      - name: Strip release binary
+        run: strip "target/${{ matrix.target }}/release/rust-swc"
+
+      - name: Tar release
+        id: make-artifact
+        working-directory: ./target/${{ matrix.target }}/release
+        run: |
+          name="rust-swc-${{ matrix.target }}.tar.gz"
+          tar cvzf "${name}" "rust-swc"
+          echo "::set-output name=name::${name}"
+      - name: Upload release archive
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
-          asset_name: ${{ matrix.asset_name }}
-          tag: ${{ github.ref }}
-          overwrite: true
-          body: 'create'
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./target/${{ matrix.target }}/release/${{ steps.make-artifact.outputs.name }}
+          asset_name: rust-swc-${{matrix.target}}.tar.gz
+          asset_content_type: application/octet-stream
+
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: create_release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && '' || github.ref }}
+          release_name: Release ${{ github.event_name == 'workflow_dispatch' && 'main' || github.ref }}
+          draft: ${{ github.event_name == 'workflow_dispatch' }}
+          prerelease: false
