@@ -7,8 +7,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        build: [linux, macos, windows]
+        build: [macos, windows]
         include:
+          # linux,
           # - build: linux
           #   os: ubuntu-18.04
           #   rust: nightly
