@@ -1,7 +1,5 @@
+on: [push, pull_request]
 name: release
-on:
-  release:
-    types: [push, pull_request]
 
 jobs:
   release:
