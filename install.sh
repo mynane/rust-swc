@@ -19,7 +19,13 @@ else
 	esac
 fi
 
-deno_uri="https://github.com/mynane/rust-swc/releases/download/v1.0.4/rust-swc-${target}.tar.gz"
+if [ $# -eq 0 ]; then
+	deno_uri="https://github.com/mynane/rust-swc/releases/latest/download/rust-swc-${target}.tar.gz"
+else
+	deno_uri="https://github.com/mynane/rust-swc/releases/download/${1}/rust-swc-${target}.tar.gz"
+fi
+
+echo $deno_uri
 
 deno_install="${DENO_INSTALL:-$HOME/.rust-swc}"
 
