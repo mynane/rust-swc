@@ -1,9 +1,9 @@
 name: Continuous Deployment
 
 on:
-  pull_request:
   push:
-    branches: latest
+    tags:
+      - 'v*.*.*'
 
 jobs:
   publish:
