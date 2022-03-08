@@ -20,7 +20,7 @@
                 }
             },
             "args": [
-                "--version"
+                "-h"
             ],
             "cwd": "${workspaceFolder}"
         },
