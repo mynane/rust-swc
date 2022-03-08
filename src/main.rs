@@ -7,8 +7,10 @@ use log::{info, warn};
 #[derive(Parser, Default)]
 #[clap(author, version, about, long_about = None)]
 struct Cli {
+    /// 模型
     pattern: String,
 
+    /// 路径
     #[clap(parse(from_os_str))]
     path: std::path::PathBuf,
 }
